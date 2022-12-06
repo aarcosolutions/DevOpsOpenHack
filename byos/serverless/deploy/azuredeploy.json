@@ -1,0 +1,22 @@
+{
+     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+     "contentVersion": "1.0.0.0",
+     "parameters": {
+     },
+     "variables": {
+     },
+     "resources": [
+          {
+            "apiVersion": "2017-05-10",
+            "name": "deployMDWOpenHackLabLinkedTemplate",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://openhackguides.blob.core.windows.net/openhack-common-deploy/serverless/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+     ]
+}

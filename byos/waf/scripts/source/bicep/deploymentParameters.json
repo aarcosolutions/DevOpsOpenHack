@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "region": {
+        "value": null
+      },
+      "vnetName": {
+        "value": null
+      },
+      "elbName": {
+        "value": null
+      },
+      "storageWeb": {
+        "value": null
+      },
+      "storageProc": {
+        "value": null
+      },
+      "storageSql": {
+        "value": null
+      },
+      "web1vmDnsLabel": {
+        "value": null
+      },
+      "web2vmDnsLabel": {
+        "value": null
+      },
+      "worker1vmDnsLabel": {
+        "value": null
+      },
+      "sqlsvr1vmDnsLabel": {
+        "value": null
+      },
+      "elbDnsLabel": {
+        "value": null
+      },
+      "adminUsername": {
+        "value": null
+      },
+      "adminPassword": {
+        "value": null
+      },
+      "sqlAdminUsername": {
+        "value": null
+      },
+      "sqlAdminPassword": {
+        "value": null
+      }
+    }
+  }

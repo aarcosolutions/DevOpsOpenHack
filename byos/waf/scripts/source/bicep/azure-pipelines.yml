@@ -1,0 +1,80 @@
+name: $(date:yyyyMMdd)$(rev:.r)
+
+trigger: 
+- main
+
+pool:
+  vmImage: ubuntu-18.04
+
+variables:
+- name: armServiceConnectionName
+  value: 'NAME_OF_YOUR_SERVICE_CONNECTION'
+
+stages:
+- stage: BUILD
+  displayName: 'Build'
+  jobs:
+  - job: 'Build'
+    displayName: 'Build ARM Template'
+    steps:
+    - checkout: self
+      displayName: 'Checkout source'
+
+    - bash: |
+        curl -Lo bicep.bin https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+        chmod +x ./bicep.bin
+      displayName: 'Install Azure Bicep'
+
+    - bash: |
+        bicep build --outdir $(Build.ArtifactStagingDirectory) main.bicep
+        cp deploymentParameters.json $(Build.ArtifactStagingDirectory)
+      displayName: 'Build ARM template'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish ARM artifacts'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: drop
+      condition: succeeded()
+- stage: PROD
+  displayName: 'Production'
+  variables: 
+    - group: 'PROD'
+  jobs:
+  - deployment: 'ARM_Template'
+    displayName: 'Deploy ARM Template'
+    environment: 'Prod'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: '$(armServiceConnectionName)'
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az group create -n '$(resourceGroup)-$(region)' -l '$(region)'
+                az deployment group create -g '$(resourceGroup)-$(region)' -n $(deploymentName) \
+                  --template-file $(Pipeline.Workspace)/drop/main.json \
+                  --parameters \
+                    region='$(region)' \
+                    vnetName='$(vnetName)' \
+                    elbName='$(elbName)' \
+                    storageWeb='$(storageWeb)' \
+                    storageProc='$(storageProc)' \
+                    storageSql='$(storageSql)' \
+                    web1vmDnsLabel='$(web1vmDnsLabel)' \
+                    web2vmDnsLabel='$(web2vmDnsLabel)' \
+                    worker1vmDnsLabel='$(worker1vmDnsLabel)' \
+                    sqlsvr1vmDnsLabel='$(sqlsvr1vmDnsLabel)' \
+                    elbDnsLabel='$(elbDnsLabel)' \
+                    adminUsername='$(adminUsername)' \
+                    adminPassword=$ADMIN_PASSWORD \
+                    sqlAdminUsername='$(sqlAdminUsername)' \
+                    sqlAdminPassword=$SQL_ADMIN_PASSWORD
+            env:
+              ADMIN_PASSWORD: $(adminPassword)
+              SQL_ADMIN_PASSWORD: $(sqlAdminPassword)
+            displayName: 'Deploy ARM template to Azure'
+  
